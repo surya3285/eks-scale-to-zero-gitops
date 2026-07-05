@@ -1,0 +1,1 @@
+# aks-scale-to-zero-gitops

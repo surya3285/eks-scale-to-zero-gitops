@@ -1,0 +1,40 @@
+# Runs 15 minutes BEFORE the EventBridge Lambda zeroes the workload node
+# group's desired size (see terraform/environments/*/dev.tfvars
+# scale_down_schedule_expression). This ordering matters: if the node group
+# were zeroed first while these Deployments/StatefulSet still wanted
+# replicas, Cluster Autoscaler would see the resulting Pending pods and
+# immediately try to scale the node group back up, fighting the Lambda in
+# a loop. Scaling the app to zero first removes that pressure so the node
+# group can actually go to zero and stay there.
+#
+# schedule/timeZone here must stay in sync with schedule_timezone in your
+# environment's tfvars if you change it from the default.
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: scale-down
+  namespace: demo-app
+spec:
+  schedule: "45 18 * * 1-5"
+  timeZone: "America/New_York"
+  concurrencyPolicy: Forbid
+  successfulJobsHistoryLimit: 1
+  failedJobsHistoryLimit: 3
+  jobTemplate:
+    spec:
+      backoffLimit: 2
+      template:
+        spec:
+          serviceAccountName: app-scaler
+          restartPolicy: Never
+          nodeSelector:
+            role: system
+          containers:
+            - name: kubectl
+              image: bitnami/kubectl:1.31
+              command:
+                - /bin/sh
+                - -c
+                - >
+                  kubectl scale deployment backend frontend --replicas=0 -n demo-app &&
+                  kubectl scale statefulset database --replicas=0 -n demo-app

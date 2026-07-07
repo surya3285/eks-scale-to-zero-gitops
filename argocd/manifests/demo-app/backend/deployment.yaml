@@ -1,0 +1,59 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: backend
+  namespace: demo-app
+  annotations:
+    argocd.argoproj.io/sync-wave: "1"
+spec:
+  # replicas intentionally omitted -- see argocd/apps/demo-app.yaml
+  # ignoreDifferences. The scale-up/scale-down CronJobs own this field.
+  selector:
+    matchLabels:
+      app: backend
+  template:
+    metadata:
+      labels:
+        app: backend
+    spec:
+      tolerations:
+        - key: dedicated
+          operator: Equal
+          value: workload
+          effect: NoSchedule
+      nodeSelector:
+        role: workload
+      containers:
+        - name: postgrest
+          image: postgrest/postgrest:v12.2.0
+          ports:
+            - containerPort: 3000
+          env:
+            - name: PGRST_DB_URI
+              valueFrom:
+                secretKeyRef:
+                  name: postgres-credentials
+                  key: PGRST_DB_URI
+            - name: PGRST_DB_SCHEMA
+              value: public
+            - name: PGRST_DB_ANON_ROLE
+              value: web_anon
+          resources:
+            requests:
+              cpu: 100m
+              memory: 128Mi
+            limits:
+              cpu: 250m
+              memory: 256Mi
+          readinessProbe:
+            httpGet:
+              path: /
+              port: 3000
+            initialDelaySeconds: 5
+            periodSeconds: 10
+          livenessProbe:
+            httpGet:
+              path: /
+              port: 3000
+            initialDelaySeconds: 10
+            periodSeconds: 20

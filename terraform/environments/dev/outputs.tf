@@ -6,6 +6,20 @@ output "cluster_endpoint" {
   value = module.eks_cluster.cluster_endpoint
 }
 
+output "cluster_certificate_authority_data" {
+  description = "Consumed by the platform root module to configure the Helm/Kubernetes providers."
+  value       = module.eks_cluster.cluster_certificate_authority_data
+}
+
+output "cluster_version" {
+  value = module.eks_cluster.cluster_version
+}
+
+output "cluster_autoscaler_role_arn" {
+  description = "IRSA role ARN for Cluster Autoscaler, consumed by the platform root module."
+  value       = module.irsa_cluster_autoscaler.role_arn
+}
+
 output "region" {
   value = var.region
 }

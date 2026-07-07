@@ -1,0 +1,16 @@
+# ClusterIP by default -- use `kubectl port-forward svc/frontend -n demo-app
+# 8080:80` to view it. Flipping this to type: LoadBalancer for screenshots
+# works fine, but remember it costs ~$0.75/day for as long as it exists;
+# delete it (or scale back to ClusterIP) once you've got your screenshot.
+apiVersion: v1
+kind: Service
+metadata:
+  name: frontend
+  namespace: demo-app
+spec:
+  type: ClusterIP
+  selector:
+    app: frontend
+  ports:
+    - port: 80
+      targetPort: 80

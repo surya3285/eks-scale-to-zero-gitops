@@ -1,0 +1,15 @@
+# EKS doesn't ship a default StorageClass once you're relying solely on the
+# aws-ebs-csi-driver addon -- without this, the database PVC below would sit
+# unbound forever. gp3 over gp2: ~20% cheaper per GB and better baseline
+# IOPS/throughput.
+apiVersion: storage.k8s.io/v1
+kind: StorageClass
+metadata:
+  name: gp3
+  annotations:
+    storageclass.kubernetes.io/is-default-class: "true"
+provisioner: ebs.csi.aws.com
+volumeBindingMode: WaitForFirstConsumer
+reclaimPolicy: Delete
+parameters:
+  type: gp3

@@ -1,0 +1,30 @@
+# One-time, manually-applied seed for the App-of-Apps pattern:
+#   kubectl apply -f argocd/bootstrap/root-app.yaml
+#
+# After this, everything else (including changes to this file) is managed
+# by ArgoCD syncing from git -- this is the only kubectl apply the whole
+# GitOps flow needs.
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: root
+  namespace: argocd
+  finalizers:
+    - resources-finalizer.argocd.argoproj.io
+spec:
+  project: default
+  source:
+    repoURL: https://github.com/surya3285/eks-scale-to-zero-gitops.git
+    targetRevision: main
+    path: argocd/apps
+    directory:
+      recurse: false
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: argocd
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    syncOptions:
+      - CreateNamespace=true

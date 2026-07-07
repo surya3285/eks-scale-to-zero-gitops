@@ -1,0 +1,29 @@
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: app-scaler
+  namespace: demo-app
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: app-scaler
+  namespace: demo-app
+rules:
+  - apiGroups: ["apps"]
+    resources: ["deployments/scale", "statefulsets/scale"]
+    verbs: ["get", "patch", "update"]
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: app-scaler
+  namespace: demo-app
+subjects:
+  - kind: ServiceAccount
+    name: app-scaler
+    namespace: demo-app
+roleRef:
+  kind: Role
+  name: app-scaler
+  apiGroup: rbac.authorization.k8s.io

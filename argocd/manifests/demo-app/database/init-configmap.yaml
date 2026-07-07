@@ -1,0 +1,25 @@
+# Runs once, only when the PVC is empty (postgres's docker-entrypoint-initdb.d
+# convention) -- so it survives every nightly scale-to-zero/scale-up cycle
+# untouched; data persists on the EBS volume across those cycles.
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: postgres-init
+  namespace: demo-app
+data:
+  init.sql: |
+    CREATE TABLE items (
+      id serial PRIMARY KEY,
+      name text NOT NULL,
+      created_at timestamptz NOT NULL DEFAULT now()
+    );
+
+    INSERT INTO items (name) VALUES
+      ('scale-to-zero'),
+      ('cluster-autoscaler'),
+      ('argocd'),
+      ('eventbridge-scheduler');
+
+    CREATE ROLE web_anon NOLOGIN;
+    GRANT USAGE ON SCHEMA public TO web_anon;
+    GRANT SELECT ON items TO web_anon;

@@ -1,0 +1,45 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: demo-app
+  namespace: argocd
+  finalizers:
+    - resources-finalizer.argocd.argoproj.io
+spec:
+  project: default
+  source:
+    repoURL: https://github.com/surya3285/eks-scale-to-zero-gitops.git
+    targetRevision: main
+    path: argocd/manifests/demo-app
+    directory:
+      recurse: true
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: demo-app
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    syncOptions:
+      - CreateNamespace=true
+    retry:
+      limit: 10
+      backoff:
+        duration: 15s
+        factor: 2
+        maxDuration: 5m
+  # The scale-down/scale-up CronJobs (argocd/manifests/demo-app/scaling)
+  # patch replica counts directly via the API, outside of git. Without this,
+  # selfHeal would revert their scale-to-zero back to the git-declared count
+  # on the next reconciliation loop, fighting the whole point of this
+  # project. This is Argo's documented pattern for coexisting with anything
+  # else that manages replicas (HPA, in our case a cron-driven scaler).
+  ignoreDifferences:
+    - group: apps
+      kind: Deployment
+      jsonPointers:
+        - /spec/replicas
+    - group: apps
+      kind: StatefulSet
+      jsonPointers:
+        - /spec/replicas

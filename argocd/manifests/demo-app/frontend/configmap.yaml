@@ -1,0 +1,53 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: frontend-nginx-conf
+  namespace: demo-app
+data:
+  default.conf: |
+    server {
+      listen 80;
+
+      location /api/ {
+        proxy_pass http://backend:3000/;
+      }
+
+      location / {
+        root /usr/share/nginx/html;
+        index index.html;
+      }
+    }
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: frontend-html
+  namespace: demo-app
+data:
+  index.html: |
+    <!doctype html>
+    <html>
+      <head>
+        <title>Auto Scale-to-Zero EKS Platform</title>
+        <style>
+          body { font-family: sans-serif; max-width: 640px; margin: 4rem auto; }
+          li { margin: 0.25rem 0; }
+        </style>
+      </head>
+      <body>
+        <h1>Auto Scale-to-Zero EKS Platform</h1>
+        <p>Frontend (nginx) &rarr; Backend (PostgREST) &rarr; Database (Postgres), all running on a node group that scales to zero outside business hours.</p>
+        <ul id="items">Loading items from the database...</ul>
+        <script>
+          fetch('/api/items')
+            .then(r => r.json())
+            .then(items => {
+              document.getElementById('items').innerHTML =
+                items.map(i => `<li>${i.name}</li>`).join('');
+            })
+            .catch(() => {
+              document.getElementById('items').innerText = 'Could not reach the backend.';
+            });
+        </script>
+      </body>
+    </html>

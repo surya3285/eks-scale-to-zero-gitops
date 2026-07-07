@@ -1,0 +1,38 @@
+# Runs 15 minutes AFTER the EventBridge Lambda sets the workload node
+# group's desired size back up (see scale_up_schedule_expression in your
+# environment's tfvars), giving nodes time to launch, join, and go Ready
+# before pods are asked to schedule onto them. Database first, then
+# backend/frontend, mirroring the sync-wave order ArgoCD uses on a fresh
+# sync.
+#
+# schedule/timeZone here must stay in sync with schedule_timezone in your
+# environment's tfvars if you change it from the default.
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: scale-up
+  namespace: demo-app
+spec:
+  schedule: "15 8 * * 1-5"
+  timeZone: "America/New_York"
+  concurrencyPolicy: Forbid
+  successfulJobsHistoryLimit: 1
+  failedJobsHistoryLimit: 3
+  jobTemplate:
+    spec:
+      backoffLimit: 2
+      template:
+        spec:
+          serviceAccountName: app-scaler
+          restartPolicy: Never
+          nodeSelector:
+            role: system
+          containers:
+            - name: kubectl
+              image: bitnami/kubectl:1.31
+              command:
+                - /bin/sh
+                - -c
+                - >
+                  kubectl scale statefulset database --replicas=1 -n demo-app &&
+                  kubectl scale deployment backend frontend --replicas=1 -n demo-app

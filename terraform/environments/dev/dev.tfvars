@@ -2,10 +2,10 @@ region       = "us-east-1"
 environment  = "dev"
 cluster_name = "eks-scale-to-zero-dev"
 
-# Verify this is inside EKS's standard support window before applying --
-# https://docs.aws.amazon.com/eks/latest/userguide/kubernetes-versions.html
-# A version past standard support bills an extra $0.60/hr/cluster.
-kubernetes_version = "1.31"
+# Verified via `aws eks describe-cluster-versions` on 2026-07-07: 1.31 is
+# already in extended support (+$0.60/hr). 1.34 has standard support until
+# 2026-12-02 and is old enough that Cluster Autoscaler has a matching image.
+kubernetes_version = "1.34"
 
 vpc_cidr             = "10.0.0.0/16"
 azs                  = ["us-east-1a", "us-east-1b"]
@@ -13,9 +13,10 @@ public_subnet_cidrs  = ["10.0.0.0/24", "10.0.1.0/24"]
 private_subnet_cidrs = ["10.0.10.0/24", "10.0.11.0/24"]
 single_nat_gateway   = true
 
-# Restrict this to your own IP before applying, e.g. ["203.0.113.4/32"].
-# Find yours with: curl -s ifconfig.me
-public_access_cidrs = ["0.0.0.0/0"]
+# Set to your IP (curl -s -4 ifconfig.me) as of 2026-07-07. If this is a
+# dynamic/home IP and later kubectl/terraform calls start timing out, your
+# IP has likely changed -- re-check and re-apply with the new value.
+public_access_cidrs = ["223.178.83.113/32"]
 
 system_instance_types   = ["t3.medium"]
 workload_instance_types = ["t3.medium"]

@@ -2,10 +2,10 @@ region       = "us-east-1"
 environment  = "staging"
 cluster_name = "eks-scale-to-zero-staging"
 
-# Verify this is inside EKS's standard support window before applying --
-# https://docs.aws.amazon.com/eks/latest/userguide/kubernetes-versions.html
-# A version past standard support bills an extra $0.60/hr/cluster.
-kubernetes_version = "1.31"
+# Verified via `aws eks describe-cluster-versions` on 2026-07-07: 1.31 is
+# already in extended support (+$0.60/hr). 1.34 has standard support until
+# 2026-12-02 and is old enough that Cluster Autoscaler has a matching image.
+kubernetes_version = "1.34"
 
 vpc_cidr             = "10.1.0.0/16"
 azs                  = ["us-east-1a", "us-east-1b"]

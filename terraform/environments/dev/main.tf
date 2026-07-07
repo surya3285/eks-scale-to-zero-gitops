@@ -94,6 +94,7 @@ resource "aws_eks_addon" "ebs_csi" {
 }
 
 module "scaling_scheduler" {
+  count  = var.enable_scheduling ? 1 : 0
   source = "../../modules/scaling-scheduler"
 
   cluster_name                   = module.eks_cluster.cluster_name

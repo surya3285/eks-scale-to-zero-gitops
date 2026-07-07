@@ -118,6 +118,12 @@ variable "workload_max_size" {
 
 # --- Scaling schedule ---
 
+variable "enable_scheduling" {
+  description = "Set to false to disable the scaling-scheduler module entirely -- lets you run the workload node group at a fixed size for a few days to capture a 24/7 cost baseline before turning scheduling back on for the before/after comparison. See scripts/generate-cost-report.sh."
+  type        = bool
+  default     = true
+}
+
 variable "scale_up_schedule_expression" {
   type    = string
   default = "cron(0 8 ? * MON-FRI *)"

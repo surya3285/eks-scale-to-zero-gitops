@@ -1,0 +1,23 @@
+# Terraform
+**/.terraform/*
+*.tfstate
+*.tfstate.*
+crash.log
+crash.*.log
+*.tfvars.json
+override.tf
+override.tf.json
+*_override.tf
+*_override.tf.json
+.terraformrc
+terraform.rc
+
+# Backend config is account-specific -- copy from backend.hcl.example
+backend.hcl
+
+# Lambda build artifacts (rebuilt by `terraform apply` via archive_file)
+terraform/modules/scaling-scheduler/build/
+
+# OS / editor
+.DS_Store
+*.swp

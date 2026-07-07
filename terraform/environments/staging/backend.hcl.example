@@ -1,0 +1,5 @@
+bucket         = "REPLACE-WITH-YOUR-STATE-BUCKET-NAME"
+key            = "staging/terraform.tfstate"
+region         = "us-east-1"
+dynamodb_table = "eks-scale-to-zero-tf-locks"
+encrypt        = true
